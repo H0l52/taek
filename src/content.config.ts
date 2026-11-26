@@ -85,6 +85,34 @@ function collectionFor(slug: string) {
   });
 }
 
-export const collections = Object.fromEntries(
-  SECTIONS.map((s) => [s.slug, collectionFor(s.slug)]),
-) as Record<(typeof SECTIONS)[number]['slug'], ReturnType<typeof collectionFor>>;
+// Korean terms: one YAML file per category in src/content/vocab/.
+const vocab = defineCollection({
+  loader: glob({ base: './src/content/vocab', pattern: '*.{yaml,yml}' }),
+  schema: z
+    .object({
+      title: z.string().min(2),
+      order: z.number().int().min(0),
+      words: z
+        .array(
+          z
+            .object({
+              korean: z.string().min(1),
+              hangul: z.string().optional(),
+              english: z.string().min(1),
+              meaning: z.string().optional(),
+              notes: z.string().optional(),
+            })
+            .strict(),
+        )
+        .min(1),
+    })
+    .strict(),
+});
+
+export const collections = {
+  ...(Object.fromEntries(SECTIONS.map((s) => [s.slug, collectionFor(s.slug)])) as Record<
+    (typeof SECTIONS)[number]['slug'],
+    ReturnType<typeof collectionFor>
+  >),
+  vocab,
+};

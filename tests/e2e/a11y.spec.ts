@@ -7,6 +7,7 @@ const pages = [
   { name: 'section', path: 'patterns/' },
   { name: 'technique', path: 'kicks/front-kick/' },
   { name: 'poomsae', path: 'patterns/koryo/' },
+  { name: 'vocab', path: 'vocab/' },
   ...(hasExamples
     ? [
         { name: 'file video', path: 'kicks/example-file-video/' },

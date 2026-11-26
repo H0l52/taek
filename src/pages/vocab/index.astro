@@ -1,0 +1,102 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import BackLink from '../../components/BackLink.astro';
+import PageTitle from '../../components/PageTitle.astro';
+import { url } from '../../lib/paths';
+
+const categories = (await getCollection('vocab')).sort((a, b) => a.data.order - b.data.order);
+---
+<Base title="Korean terms">
+  <BackLink href={url()} label="Taek" />
+  <PageTitle title="Korean terms" korean="Yongeo" hangul="용어" />
+
+  {categories.length === 0 ? (
+    <p class="empty">No terms yet. Add a YAML file to <code>src/content/vocab/</code>.</p>
+  ) : (
+    <button type="button" class="practise" aria-pressed="false" data-practise>Test yourself</button>
+  )}
+
+  {categories.map((c) => (
+    <section aria-labelledby={`vocab-${c.id}`}>
+      <h2 id={`vocab-${c.id}`} class="list-heading">{c.data.title}</h2>
+      <ul class="list">
+        {c.data.words.map((w) => (
+          <li>
+            <details open>
+              <summary class="row">
+                <span class="row__body">
+                  <span class="row__title">{w.korean}</span>
+                  {w.hangul && <span class="row__sub" lang="ko">{w.hangul}</span>}
+                </span>
+                <span class="english">{w.english}</span>
+              </summary>
+              {(w.meaning || w.notes) && (
+                <div class="more">
+                  {w.meaning && <p>{w.meaning}</p>}
+                  {w.notes && <p class="notes">{w.notes}</p>}
+                </div>
+              )}
+            </details>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>
+
+<script>
+  // Practice mode closes every word; tap one to check yourself.
+  const button = document.querySelector<HTMLButtonElement>('[data-practise]');
+  button?.addEventListener('click', () => {
+    const practising = button.getAttribute('aria-pressed') !== 'true';
+    button.setAttribute('aria-pressed', String(practising));
+    button.textContent = practising ? 'Show all' : 'Test yourself';
+    for (const d of document.querySelectorAll('details')) d.open = !practising;
+  });
+</script>
+
+<style>
+  .practise {
+    min-height: var(--target);
+    padding: 0 var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--surface);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .practise[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  summary {
+    list-style: none;
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  .english {
+    text-align: right;
+    color: var(--ink-2);
+  }
+  details:not([open]) .english {
+    visibility: hidden;
+  }
+  .more {
+    padding: 0 var(--space-4) var(--space-3);
+    color: var(--ink-2);
+    font-size: var(--text-sm);
+  }
+  .more p {
+    margin: 0 0 var(--space-1);
+  }
+  .notes {
+    font-style: italic;
+  }
+  .empty {
+    color: var(--ink-2);
+  }
+</style>

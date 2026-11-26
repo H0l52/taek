@@ -53,12 +53,14 @@ src/
     strikes/*.md
     self-defence/*.md
     patterns/*.md
+    vocab/*.yaml            # Korean terms, one file per category (page: /vocab/)
   examples/                 # test-only fixtures, built when INCLUDE_EXAMPLES=true
   components/               # VideoPlayer, YouTubeEmbed, InstallHint, TabBar, PoomsaeLine ...
   layouts/Base.astro
   lib/                      # sections, content helpers (sorting, grades, media), paths
   pages/
-    index.astro             # home: black belt poomsae, then the five sections
+    index.astro             # home: black belt poomsae, the five sections, Korean terms
+    vocab/index.astro       # Korean terms with a "Test yourself" mode
     [section]/index.astro   # list of tutorials in a section, grouped dan → geup → other
     [section]/[slug].astro  # a tutorial
     manifest.webmanifest.ts # generated so it follows the base path
@@ -255,6 +257,7 @@ Use role/label-based locators (`getByRole`, `getByLabel`), not CSS selectors.
 | `webapp-testing` | Driving the running site with Playwright to debug and screenshot |
 | `find-skills` | Finding further skills on skills.sh when a new need comes up |
 | `taekwondo-content` | Adding or editing a tutorial (frontmatter, media, checks) |
+| `ponytail` (+ `-review`, `-audit`, `-debt`, `-help`) | Smallest complete change; reviewing/auditing for bloat. Never cut accessibility, offline or tests to save lines |
 
 Impeccable sub-agents live in `.claude/agents/`. Provenance and update steps for vendored
 skills are in `.claude/skills/README.md`. Vet any new third-party skill (source, installs,

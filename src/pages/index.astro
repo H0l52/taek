@@ -3,12 +3,14 @@ import Base from '../layouts/Base.astro';
 import InstallHint from '../components/InstallHint.astro';
 import Chevron from '../components/Chevron.astro';
 import PoomsaeLine from '../components/PoomsaeLine.astro';
+import { getCollection } from 'astro:content';
 import { getAllTutorials, gradeLabel } from '../lib/content';
 import { url } from '../lib/paths';
 
 const all = await getAllTutorials();
 const patterns = all.find((s) => s.section.slug === 'patterns')?.tutorials ?? [];
 const danPoomsae = patterns.filter((p) => p.data.grade?.kind === 'dan');
+const wordCount = (await getCollection('vocab')).reduce((n, c) => n + c.data.words.length, 0);
 ---
 <Base title="Taek">
   <header class="home-title">
@@ -58,6 +60,22 @@ const danPoomsae = patterns.filter((p) => p.data.grade?.kind === 'dan');
           </a>
         </li>
       ))}
+    </ul>
+  </section>
+
+  <section aria-labelledby="study-heading">
+    <h2 id="study-heading" class="list-heading">Study</h2>
+    <ul class="list">
+      <li>
+        <a class="row" href={url('vocab/')}>
+          <span class="row__body">
+            <span class="row__title">Korean terms</span>
+            <span class="row__sub">Yongeo <span lang="ko">용어</span></span>
+          </span>
+          <span class="row__meta">{wordCount}</span>
+          <Chevron />
+        </a>
+      </li>
     </ul>
   </section>
 </Base>

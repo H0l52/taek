@@ -1,0 +1,37 @@
+# One file per category. Copy this file to start a new one (e.g. commands.yaml).
+#   title: shown as the list heading
+#   order: position on the page (lowest first)
+#   words: each needs korean (romanised) and english; hangul, meaning and notes are optional.
+title: Counting
+order: 1
+words:
+  - korean: Hana
+    hangul: 하나
+    english: One
+  - korean: Dul
+    hangul: 둘
+    english: Two
+  - korean: Set
+    hangul: 셋
+    english: Three
+  - korean: Net
+    hangul: 넷
+    english: Four
+  - korean: Daseot
+    hangul: 다섯
+    english: Five
+  - korean: Yeoseot
+    hangul: 여섯
+    english: Six
+  - korean: Ilgop
+    hangul: 일곱
+    english: Seven
+  - korean: Yeodeol
+    hangul: 여덟
+    english: Eight
+  - korean: Ahop
+    hangul: 아홉
+    english: Nine
+  - korean: Yeol
+    hangul: 열
+    english: Ten

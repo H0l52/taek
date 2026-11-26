@@ -33,3 +33,22 @@ of `kicks`, `blocks`, `strikes`, `self-defence`, `patterns`. The schema is in
      optional `start` seconds.
 6. Verify: `npm run check && npm run build`, then `npm run test:e2e`. Open the page at an
    iPhone viewport (use the `webapp-testing` skill) and check the video plays inline.
+
+## Korean terms (vocab)
+
+Terms live in `src/content/vocab/<category>.yaml`, one file per category (counting,
+commands, stances, body parts…), shown at `/vocab/` with a "Test yourself" mode.
+
+```yaml
+title: Commands        # list heading
+order: 2               # position on the page
+words:
+  - korean: Charyeot   # romanised (required)
+    hangul: 차렷        # optional
+    english: Attention # required: the short translation shown beside the word
+    meaning: Stand to attention, heels together.   # optional longer explanation
+    notes: Called at the start of every class.     # optional personal note
+```
+
+Use the owner's words as given: don't "correct" their romanisation or add terms they didn't
+ask for. Run `npm run check` to validate, then `npm run build`.
