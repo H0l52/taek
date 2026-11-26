@@ -1,0 +1,96 @@
+---
+/** iOS never offers to install a web app; this once-only hint explains how. */
+---
+<aside class="install" data-install-hint hidden aria-labelledby="install-title">
+  <div class="install__text">
+    <p id="install-title" class="install__title">Keep Taek on your Home Screen</p>
+    <p class="install__body">
+      Tap{' '}<svg class="share" viewBox="0 0 20 24" role="img" aria-label="Share"><path d="M10 15V2m0 0L6 6m4-4 4 4M6.5 9H4a1.5 1.5 0 0 0-1.5 1.5v10A1.5 1.5 0 0 0 4 22h12a1.5 1.5 0 0 0 1.5-1.5v-10A1.5 1.5 0 0 0 16 9h-2.5" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" /></svg>{' '}then <strong>Add to Home Screen</strong>. It opens full screen and works offline.
+    </p>
+  </div>
+  <button type="button" class="install__close" data-install-close aria-label="Dismiss">
+    <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2 2l10 10M12 2 2 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
+  </button>
+</aside>
+
+<script>
+  const KEY = 'taek.installHint.dismissed';
+  const hint = document.querySelector<HTMLElement>('[data-install-hint]');
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const standalone =
+    ('standalone' in navigator && (navigator as Navigator & { standalone?: boolean }).standalone === true) ||
+    matchMedia('(display-mode: standalone)').matches;
+
+  function dismissed(): boolean {
+    try {
+      return localStorage.getItem(KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  if (hint && isIOS && !standalone && !dismissed()) {
+    hint.hidden = false;
+    hint.querySelector('[data-install-close]')?.addEventListener('click', () => {
+      hint.hidden = true;
+      try {
+        localStorage.setItem(KEY, '1');
+      } catch {
+        /* private mode: the hint will show again next time */
+      }
+    });
+  }
+</script>
+
+<style>
+  .install {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+    margin: var(--space-5) 0 0;
+    padding: var(--space-3) var(--space-2) var(--space-3) var(--space-4);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    background: var(--surface);
+  }
+  .install[hidden] {
+    display: none;
+  }
+  .install__text {
+    flex: 1;
+  }
+  .install__title {
+    margin: 0 0 0.125rem;
+    font-weight: 600;
+  }
+  .install__body {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+  .share {
+    display: inline-block;
+    width: 0.875rem;
+    height: 1.0625rem;
+    vertical-align: -0.1875rem;
+    color: var(--seal);
+  }
+  .install__close {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--target);
+    height: var(--target);
+    margin: calc(-1 * var(--space-2)) 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .install__close svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+</style>

@@ -1,0 +1,55 @@
+---
+/**
+ * The poomsae line (yeonmuseon): the floor path each form follows, named after the
+ * character it traces. Only lines we can draw faithfully are listed; others render nothing.
+ */
+interface Props {
+  line: 'wang' | 'sa' | 'san' | 'gong' | 'il' | 'sip' | 'jitae' | 'cheonkwon' | undefined;
+  size?: 'sm' | 'lg';
+  label?: string;
+}
+const { line, size = 'sm', label } = Astro.props;
+
+const PATHS: Record<string, { d: string; char: string }> = {
+  wang: { d: 'M6 6h28M6 20h28M6 34h28M20 6v28', char: '王' },
+  sa: { d: 'M6 13h28M12 34h16M20 6v28', char: '士' },
+  san: { d: 'M20 6v28M7 16v18M33 16v18M7 34h26', char: '山' },
+  gong: { d: 'M9 6h22M5 34h30M20 6v28', char: '工' },
+  il: { d: 'M4 20h32', char: '一' },
+  sip: { d: 'M5 17h30M20 4v32', char: '十' },
+  jitae: { d: 'M20 8v24M4 32h32', char: 'ㅗ' },
+  cheonkwon: { d: 'M4 9h32M20 9v24', char: 'ㅜ' },
+};
+const shape = line ? PATHS[line] : undefined;
+---
+{shape && (
+  <svg
+    class:list={['line', size]}
+    viewBox="0 0 40 40"
+    fill="none"
+    stroke="currentColor"
+    stroke-width={size === 'lg' ? 2.25 : 3}
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    role={label ? 'img' : undefined}
+    aria-label={label ? `${label}: floor line in the shape of ${shape.char}` : undefined}
+    aria-hidden={label ? undefined : 'true'}
+  >
+    <path d={shape.d} />
+  </svg>
+)}
+
+<style>
+  .line {
+    flex: none;
+    color: var(--ink);
+  }
+  .sm {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+  .lg {
+    width: 5rem;
+    height: 5rem;
+  }
+</style>

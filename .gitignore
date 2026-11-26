@@ -8,7 +8,9 @@ test-results/
 playwright-report/
 blob-report/
 
-# Impeccable engine binary + caches
+# Impeccable: commit PRODUCT.md, DESIGN.md and .impeccable/{config.json,surfaces/,design.json,
+# live/config.json,critique/ignore.md}. Runtime dirs ignore themselves; these stay local:
+.impeccable/config.local.json
+**/.impeccable/hook.cache.json
 .claude/skills/impeccable/scripts/bin/
-**/.impeccable/
-.impeccable/live/
+.claude/settings.local.json

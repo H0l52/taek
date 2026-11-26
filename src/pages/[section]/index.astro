@@ -1,0 +1,78 @@
+---
+import type { GetStaticPaths } from 'astro';
+import Base from '../../layouts/Base.astro';
+import BackLink from '../../components/BackLink.astro';
+import PageTitle from '../../components/PageTitle.astro';
+import Chevron from '../../components/Chevron.astro';
+import GradeBadge from '../../components/GradeBadge.astro';
+import PoomsaeLine from '../../components/PoomsaeLine.astro';
+import { SECTIONS, type Section } from '../../lib/sections';
+import { getTutorials, groupTutorials } from '../../lib/content';
+import { url } from '../../lib/paths';
+
+export const getStaticPaths = (() => SECTIONS.map((section) => ({ params: { section: section.slug }, props: { section } }))) satisfies GetStaticPaths;
+
+interface Props { section: Section; }
+const { section } = Astro.props;
+const groups = groupTutorials(await getTutorials(section.slug));
+const showHeadings = groups.length > 1;
+---
+<Base title={section.title} section={section.slug} sectionRoot>
+  <BackLink href={url()} label="Taek" />
+  <PageTitle title={section.title} korean={section.korean} hangul={section.hangul} />
+
+  {groups.length === 0 && (
+    <p class="empty">
+      No {section.title.toLowerCase()} yet. Add a Markdown file to
+      <code>src/content/{section.slug}/</code> to create one.
+    </p>
+  )}
+
+  {groups.map((group) => (
+    <section aria-labelledby={showHeadings ? `group-${group.id}` : undefined} aria-label={showHeadings ? undefined : section.title}>
+      {showHeadings && <h2 id={`group-${group.id}`} class="list-heading">{group.title}</h2>}
+      <ul class="list">
+        {group.tutorials.map((t) => (
+          <li>
+            <a class="row" href={url(`${section.slug}/${t.id}/`)}>
+              {section.slug === 'patterns' && <span class="glyph"><PoomsaeLine line={t.data.line} /></span>}
+              <span class="row__body">
+                <span class="row__title">{t.data.title}</span>
+                <span class="row__sub">
+                  {t.data.korean}
+                  {t.data.hangul && <> <span lang="ko">{t.data.hangul}</span></>}
+                </span>
+              </span>
+              {t.data.video && (
+                <svg class="has-video" viewBox="0 0 16 16" role="img" aria-label="Has video"><path d="M5.5 3.5v9l7-4.5z" fill="currentColor" /></svg>
+              )}
+              {t.data.grade && <GradeBadge grade={t.data.grade} />}
+              <Chevron />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+</Base>
+
+<style>
+  section:first-of-type .list-heading {
+    margin-top: 0;
+  }
+  .glyph {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    min-height: 1.75rem;
+  }
+  .has-video {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    color: var(--ink-3);
+  }
+  .empty {
+    color: var(--ink-2);
+  }
+</style>

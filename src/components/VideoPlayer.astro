@@ -1,0 +1,105 @@
+---
+import { getImage } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Props {
+  src: string;
+  poster: ImageMetadata;
+  title: string;
+  captions?: string | undefined;
+  loop?: boolean;
+  audio?: boolean;
+}
+const { src, poster, title, captions, loop = true, audio = false } = Astro.props;
+const posterImg = await getImage({ src: poster, width: 1280, format: 'webp' });
+const type = src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+---
+<figure class="video" data-video>
+  <video
+    controls
+    playsinline
+    preload="metadata"
+    poster={posterImg.src}
+    loop={loop}
+    muted={!audio}
+    aria-label={title}
+    width={poster.width}
+    height={poster.height}
+  >
+    <source src={src} type={type} />
+    {captions && <track kind="captions" src={captions} srclang="en" label="English" default />}
+    <a href={src}>Download the video</a>
+  </video>
+  <div class="speed" role="group" aria-label="Playback speed">
+    <span class="speed__label" aria-hidden="true">Speed</span>
+    <button type="button" data-rate="1" aria-pressed="true">1×</button>
+    <button type="button" data-rate="0.5" aria-pressed="false">½×</button>
+    <button type="button" data-rate="0.25" aria-pressed="false">¼×</button>
+  </div>
+</figure>
+
+<script>
+  for (const figure of document.querySelectorAll<HTMLElement>('[data-video]')) {
+    const video = figure.querySelector('video');
+    const buttons = figure.querySelectorAll<HTMLButtonElement>('button[data-rate]');
+    if (!video) continue;
+    for (const button of buttons) {
+      button.addEventListener('click', () => {
+        const rate = Number(button.dataset.rate);
+        video.playbackRate = rate;
+        video.defaultPlaybackRate = rate;
+        for (const b of buttons) b.setAttribute('aria-pressed', String(b === button));
+      });
+    }
+  }
+</script>
+
+<style>
+  .video {
+    margin: 0 calc(-1 * var(--space-4)) var(--space-5);
+  }
+  video {
+    width: 100%;
+    height: auto;
+    background: #000;
+    aspect-ratio: 16 / 9;
+    object-fit: contain;
+  }
+  .speed {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-4) 0;
+  }
+  .speed__label {
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+    margin-right: auto;
+  }
+  button {
+    min-width: var(--target);
+    min-height: var(--target);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    background: var(--surface);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: background-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out);
+  }
+  button[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--paper);
+  }
+  @media (min-width: 40rem) {
+    .video {
+      margin-inline: 0;
+    }
+    video {
+      border-radius: var(--radius);
+    }
+  }
+</style>

@@ -1,0 +1,245 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import BackLink from '../../components/BackLink.astro';
+import PageTitle from '../../components/PageTitle.astro';
+import GradeBadge from '../../components/GradeBadge.astro';
+import PoomsaeLine from '../../components/PoomsaeLine.astro';
+import VideoPlayer from '../../components/VideoPlayer.astro';
+import YouTubeEmbed from '../../components/YouTubeEmbed.astro';
+import { SECTIONS, type Section } from '../../lib/sections';
+import { getTutorials, resolveMedia, type Tutorial } from '../../lib/content';
+import { url } from '../../lib/paths';
+
+export const getStaticPaths = (async () => {
+  const paths = [];
+  for (const section of SECTIONS) {
+    for (const entry of await getTutorials(section.slug)) {
+      paths.push({ params: { section: section.slug, slug: entry.id }, props: { section, entry } });
+    }
+  }
+  return paths;
+}) satisfies GetStaticPaths;
+
+interface Props { section: Section; entry: Tutorial; }
+const { section, entry } = Astro.props;
+const { data } = entry;
+const { Content } = await render(entry);
+const video = data.video;
+const isPattern = section.slug === 'patterns';
+---
+<Base title={data.title} description={data.summary} section={section.slug}>
+  <BackLink href={url(`${section.slug}/`)} label={section.title} />
+  <PageTitle title={data.title} korean={data.korean} hangul={data.hangul}>
+    {data.grade && <p class="badges"><GradeBadge grade={data.grade} /></p>}
+  </PageTitle>
+
+  {video && 'file' in video && (
+    <VideoPlayer
+      src={resolveMedia(entry, video.file)}
+      poster={video.poster}
+      title={video.title ?? `${data.title} demonstration`}
+      captions={video.captions ? resolveMedia(entry, video.captions) : undefined}
+      loop={video.loop}
+      audio={video.audio}
+    />
+  )}
+  {video && 'youtube' in video && (
+    <YouTubeEmbed id={video.youtube} start={video.start} title={video.title ?? `${data.title} on YouTube`} poster={video.poster} />
+  )}
+  {!video && data.hero && (
+    <figure class="hero">
+      <Image src={data.hero.src} alt={data.hero.alt} widths={[640, 1280]} sizes="(min-width: 40rem) 38rem, 100vw" />
+      {data.hero.caption && <figcaption>{data.hero.caption}</figcaption>}
+    </figure>
+  )}
+
+  <p class="lede">{data.summary}</p>
+
+  {isPattern && (
+    <dl class="facts">
+      {data.line && (
+        <div class="facts__line">
+          <dt>Floor line</dt>
+          <dd><PoomsaeLine line={data.line} size="lg" label={data.title} /></dd>
+        </div>
+      )}
+      <div>
+        <dt>Moves</dt>
+        <dd class="num">{data.moves}</dd>
+      </div>
+      <div class="facts__meaning">
+        <dt>Meaning</dt>
+        <dd>{data.meaning}</dd>
+      </div>
+    </dl>
+  )}
+
+  {data.keyPoints.length > 0 && (
+    <section aria-labelledby="key-points">
+      <h2 id="key-points">Key points</h2>
+      <ul class="points">
+        {data.keyPoints.map((p) => <li>{p}</li>)}
+      </ul>
+    </section>
+  )}
+
+  <div class="prose">
+    <Content />
+  </div>
+
+  {data.commonMistakes.length > 0 && (
+    <section aria-labelledby="mistakes">
+      <h2 id="mistakes">Common mistakes</h2>
+      <ul class="points mistakes">
+        {data.commonMistakes.map((p) => <li>{p}</li>)}
+      </ul>
+    </section>
+  )}
+
+  {data.images.length > 0 && (
+    <section aria-labelledby="gallery">
+      <h2 id="gallery">Photos</h2>
+      <div class="gallery">
+        {data.images.map((img) => (
+          <figure>
+            <Image src={img.src} alt={img.alt} widths={[480, 960]} sizes="(min-width: 40rem) 19rem, 50vw" />
+            {img.caption && <figcaption>{img.caption}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  .badges {
+    margin: var(--space-2) 0 0;
+  }
+  .hero {
+    margin: 0 calc(-1 * var(--space-4)) var(--space-5);
+  }
+  .hero img {
+    width: 100%;
+    height: auto;
+  }
+  .hero figcaption,
+  .gallery figcaption {
+    padding: var(--space-2) var(--space-4) 0;
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+  }
+  .lede {
+    font-size: var(--text-md);
+    line-height: 1.4;
+    margin: 0 0 var(--space-5);
+  }
+  h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: var(--space-6) 0 var(--space-3);
+  }
+  .facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4) var(--space-6);
+    align-items: flex-start;
+    margin: 0 0 var(--space-5);
+    padding: var(--space-4);
+    background: var(--surface);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  .facts dt {
+    font-size: var(--text-sm);
+    color: var(--ink-2);
+    margin-bottom: var(--space-2);
+  }
+  .facts dd {
+    margin: 0;
+  }
+  .facts__meaning {
+    flex-basis: 100%;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--rule);
+  }
+  .num {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .points {
+    margin: 0;
+    padding-left: 1.25rem;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .points li::marker {
+    color: var(--seal);
+  }
+  .mistakes li::marker {
+    content: '× ';
+    color: var(--ink-3);
+  }
+  .prose {
+    max-width: 65ch;
+  }
+  .prose :global(h2) {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    margin: var(--space-6) 0 var(--space-3);
+  }
+  .prose :global(h3) {
+    font-size: var(--text-md);
+    margin: var(--space-5) 0 var(--space-2);
+  }
+  .prose :global(p) {
+    margin: 0 0 var(--space-4);
+  }
+  .prose :global(ol) {
+    margin: 0 0 var(--space-4);
+    padding-left: 1.5rem;
+    display: grid;
+    gap: var(--space-3);
+  }
+  .prose :global(ol li::marker) {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--seal);
+  }
+  .prose :global(blockquote) {
+    margin: 0 0 var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--seal-wash);
+    border-radius: var(--radius-sm);
+  }
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
+    gap: var(--space-3);
+  }
+  .gallery figure {
+    margin: 0;
+  }
+  .gallery img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-sm);
+  }
+  .gallery figcaption {
+    padding-inline: 0;
+  }
+  @media (min-width: 40rem) {
+    .hero {
+      margin-inline: 0;
+    }
+    .hero img {
+      border-radius: var(--radius);
+    }
+  }
+</style>

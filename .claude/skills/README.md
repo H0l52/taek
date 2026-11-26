@@ -17,10 +17,10 @@ install count on skills.sh, licence, contents reviewed) on 2026-11-26.
 - The launcher `impeccable/scripts/impeccable` downloads a checksum-verified engine binary
   on first run (into the skill's `scripts/` dir or `~/.impeccable`). Those files are
   git-ignored.
-- Impeccable's optional design-detector hooks (SessionStart / PostToolUse on Edit|Write /
-  Stop) are **not** enabled. To opt in, copy the `hooks` block from
-  `pbakaus/impeccable/.claude/settings.json` into `.claude/settings.json`, or run
-  `npx impeccable install --providers=claude --scope=project` and accept the hook.
+- The design-detector hook is enabled in the shared `.impeccable/config.json` but is wired
+  per machine: run `/impeccable hooks on` once (writes `.claude/settings.local.json`). See the
+  root `README.md`. CI also runs `impeccable detect` (advisory) via the `impeccable` npm
+  devDependency.
 
 ## Updating
 

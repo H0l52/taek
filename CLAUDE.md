@@ -22,8 +22,9 @@ file committed to this repository or a YouTube video.
 Language: British English in UI copy and content ("defence", "colour"). Korean terms are
 shown alongside English with romanisation (and Hangul where known).
 
-Open question to confirm with the owner before writing content: ITF (tul) or WT/Kukkiwon
-(poomsae/taegeuk) syllabus, and the grading/belt order to use. Do not guess; ask.
+Syllabus: **Kukkiwon** (Taegeuk and black-belt poomsae). Tutorials are tagged by Kukkiwon
+grade, geup (10th–1st) or dan (1st–9th); the owner is working through the dan grades, so dan
+material comes first in every list. Product context lives in `PRODUCT.md`.
 
 ## Stack (decided)
 
@@ -35,7 +36,7 @@ Open question to confirm with the owner before writing content: ITF (tul) or WT/
 - **TypeScript** strict mode.
 - **Playwright** (`@playwright/test`) for integration/E2E tests, plus `@axe-core/playwright`
   for accessibility.
-- Node: current active LTS, pinned in `.nvmrc` and `package.json#engines`.
+- Node: LTS, pinned in `.nvmrc` (CI) with a minimum in `package.json#engines`.
 - Package manager: npm with a committed `package-lock.json`; CI uses `npm ci`.
 
 Pin exact dependency versions; do not add a dependency for something a few lines of code
@@ -45,25 +46,31 @@ can do.
 
 ```
 src/
+  content.config.ts         # zod schemas; one collection per section
   content/
-    config.ts               # zod schemas for each collection
     kicks/*.md              # one file per technique
     blocks/*.md
     strikes/*.md
     self-defence/*.md
     patterns/*.md
-  components/               # VideoPlayer, YouTubeEmbed, StepList, InstallHint, TabBar ...
-  layouts/
+  examples/                 # test-only fixtures, built when INCLUDE_EXAMPLES=true
+  components/               # VideoPlayer, YouTubeEmbed, InstallHint, TabBar, PoomsaeLine ...
+  layouts/Base.astro
+  lib/                      # sections, content helpers (sorting, grades, media), paths
   pages/
-    index.astro             # home: five sections
-    [section]/index.astro   # list of tutorials in a section
+    index.astro             # home: black belt poomsae, then the five sections
+    [section]/index.astro   # list of tutorials in a section, grouped dan → geup → other
     [section]/[slug].astro  # a tutorial
-  styles/tokens.css
+    manifest.webmanifest.ts # generated so it follows the base path
+    sw.js.ts                # service worker, generated with base path + build ID
+    404.astro
+  styles/tokens.css, global.css
 public/
-  manifest.webmanifest
-  icons/                    # apple-touch-icon 180x180, 192, 512, maskable 512
-  sw.js                     # service worker (see PWA rules)
-media/                      # source images/video before optimisation (if needed)
+  icons/                    # icon.svg + PNGs from `node scripts/make-icons.mjs`
+  .nojekyll
+scripts/
+  serve.mjs                 # GitHub Pages–like static server for dist/ (preview + tests)
+  make-icons.mjs
 tests/e2e/*.spec.ts
 .github/workflows/
 PRODUCT.md                  # product context, written by /impeccable init
@@ -73,14 +80,14 @@ DESIGN.md                   # visual system, written by /impeccable document
 ## Content model
 
 Each tutorial is a Markdown file; the body holds the prose and step-by-step instructions.
-Frontmatter (validated by zod in `src/content/config.ts`; build must fail on bad data):
+Frontmatter (validated by zod in `src/content.config.ts`; build fails on bad data):
 
 ```yaml
 title: Turning kick
 korean: Dollyeo chagi          # romanised
 hangul: 돌려차기                # optional
 order: 3                       # sort order within the section
-level: beginner                # beginner | intermediate | advanced (or belt, once confirmed)
+grade: { kind: dan, level: 1 }  # optional for techniques; geup 10–1 or dan 1–9
 summary: One sentence shown on the list card.
 hero:                          # optional image
   src: ./images/turning-kick.jpg
@@ -88,14 +95,20 @@ hero:                          # optional image
 video:                         # optional; exactly one of file | youtube
   file: ./video/turning-kick.mp4
   poster: ./images/turning-kick-poster.jpg
+  captions: ./video/turning-kick.vtt   # when the clip has speech
+  loop: true                    # default; silent demo clips loop
+  audio: false                  # default; true unmutes (then add captions)
   # or
   youtube: dQw4w9WgXcQ          # video ID only, never a full URL
   start: 12                     # optional seconds
 keyPoints: [ "Pivot on the ball of the standing foot", "Chamber the knee" ]
 commonMistakes: [ "Leaning back", "Kicking with the toes" ]
-# patterns only:
-moves: 19
+images: [{ src: ./images/chamber.jpg, alt: "...", caption: "..." }]
+# patterns only (required there):
+family: black-belt             # taegeuk | black-belt
+moves: 30
 meaning: Short description of the pattern's meaning
+line: sa                       # floor-line glyph: wang sa san gong il sip jitae cheonkwon
 ```
 
 Rules:
@@ -167,11 +180,23 @@ npm ci                 # install
 npm run dev            # dev server
 npm run check          # astro check + tsc (content schema + types)
 npm run build          # static build to dist/
-npm run preview        # serve dist/ locally
+npm run preview        # serve dist/ locally like GitHub Pages (scripts/serve.mjs)
 npm run test:e2e       # Playwright against the built site
+npm run test:smoke     # @smoke subset (also run against live PR previews)
+npm run design:detect  # Impeccable design-slop scan of src/
 ```
 
-Always run `npm run check`, `npm run build` and `npm run test:e2e` before committing.
+Always run `npm run check`, `npm run build` and `npm run test:e2e` before committing. For the
+full suite, build and test with the CI flags (media fixtures + service worker):
+
+```bash
+INCLUDE_EXAMPLES=true PUBLIC_ENABLE_SW=true npm run build
+INCLUDE_EXAMPLES=true PUBLIC_ENABLE_SW=true npm run test:e2e
+```
+
+Without WebKit installed (e.g. cloud sessions), add `PW_IPHONE_BROWSER=chromium` to emulate
+the iPhone in Chromium. Do not use `astro preview` for tests: in Astro 7 it can detach into
+the background, which Playwright reads as the server exiting.
 
 ## Base path
 
@@ -186,10 +211,11 @@ service-worker scope must also follow the base path. Tests must exercise a non-r
 Pages source: **Deploy from a branch → `gh-pages` / root** (required for PR previews).
 
 1. `ci.yml` — on every push and pull request: `npm ci` → `npm run check` → `npm run build`
-   → Playwright tests (projects: WebKit "iPhone 15" emulation + desktop Chromium) against
-   `npm run preview` → axe accessibility checks → upload the Playwright report as an
-   artifact on failure.
-2. `deploy.yml` — on push to `main` after CI passes: build with `BASE_PATH=/taek/` and
+   (with `INCLUDE_EXAMPLES` and `PUBLIC_ENABLE_SW`) → Playwright (WebKit "iPhone 15" +
+   desktop Chromium, including axe) → Playwright report artifact on failure. A separate,
+   advisory job runs `impeccable detect --github src/`.
+2. `deploy.yml` — when CI succeeds for a push to `main` (or manually): build with
+   `BASE_PATH=/taek/`, the service worker on, and
    publish `dist/` to `gh-pages` with `JamesIves/github-pages-deploy-action`, using
    `clean-exclude: pr-preview/` so previews survive.
 3. `preview.yml` — on `pull_request` (opened/synchronize/reopened/closed): build with
@@ -197,10 +223,10 @@ Pages source: **Deploy from a branch → `gh-pages` / root** (required for PR pr
    (it comments the preview URL on the PR and removes the preview on close). Then run the
    Playwright smoke suite against the live preview URL.
    Preview jobs need `contents: write` and `pull-requests: write`; skip for PRs from forks.
-4. Optional design gate: `npx impeccable detect --github dist/` to annotate design-slop
-   findings on the PR.
 
-Pin third-party actions to a full commit SHA. Use `concurrency` groups so deploys don't
+Deploy and preview share the `gh-pages` concurrency group so pushes to that branch never
+race. Astro's asset folder is `assets/` (not `_astro/`) and `public/.nojekyll` exists,
+because Jekyll on Pages drops underscore folders. Pin third-party actions to a full commit SHA. Use `concurrency` groups so deploys don't
 race. Never commit secrets; none are needed (the default `GITHUB_TOKEN` suffices).
 
 ## Testing expectations
@@ -213,8 +239,10 @@ Playwright specs in `tests/e2e/` must cover at least:
 - Manifest is reachable, valid JSON, and icons resolve; `apple-touch-icon` resolves.
 - No broken internal links (crawl from home under the base path).
 - axe: no serious/critical violations on home, a section, and a tutorial, in light and dark.
-- Offline: after one visit, the app shell and a visited tutorial load offline (production
-  build only).
+- Offline: after one visit, the app shell and a visited tutorial load offline (service-worker
+  builds only).
+
+Media tests use the fixtures in `src/examples/` and skip unless `INCLUDE_EXAMPLES=true`.
 
 Use role/label-based locators (`getByRole`, `getByLabel`), not CSS selectors.
 

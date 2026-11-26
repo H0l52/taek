@@ -1,0 +1,28 @@
+---
+import { gradeLabel, type Grade } from '../lib/content';
+interface Props { grade: Grade; }
+const { grade } = Astro.props;
+---
+<span class:list={['grade', grade.kind]}>{gradeLabel(grade)}</span>
+
+<style>
+  .grade {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.0625rem 0.4375rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-2);
+  }
+  /* Dan grades wear black, like the belt. */
+  .dan {
+    color: var(--paper);
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+</style>

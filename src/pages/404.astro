@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import BackLink from '../components/BackLink.astro';
+import PageTitle from '../components/PageTitle.astro';
+import { url } from '../lib/paths';
+---
+<Base title="Not found">
+  <BackLink href={url()} label="Taek" />
+  <PageTitle title="Page not found" />
+  <p>That page doesn't exist, or it has moved. Pick a section below, or go back to the home screen.</p>
+</Base>

@@ -1,0 +1,189 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-ui);
+  font-size: 106.25%; /* 17px default */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* On iOS, follow the system text size (Dynamic Type). */
+@supports (font: -apple-system-body) {
+  html {
+    font: -apple-system-body;
+    font-family: var(--font-ui);
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--paper);
+  line-height: 1.45;
+  font-feature-settings: 'kern';
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--seal);
+  color: var(--seal-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  margin: 0;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
+img,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
+
+[lang='ko'] {
+  font-family: var(--font-ko);
+  word-break: keep-all;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.page {
+  max-width: calc(var(--measure) + var(--safe-left) + var(--safe-right) + 2 * var(--space-4));
+  margin-inline: auto;
+  padding: calc(var(--safe-top) + var(--space-3)) calc(var(--safe-right) + var(--space-4))
+    calc(var(--tabbar-h) + var(--safe-bottom) + var(--space-7)) calc(var(--safe-left) + var(--space-4));
+}
+
+/* Grouped list: the iOS inset-grouped pattern, the single list vocabulary of the app. */
+.list-heading {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--ink-2);
+  margin: var(--space-6) var(--space-4) var(--space-2);
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Hairline between rows, inset to the text like iOS. */
+.list > li + li {
+  position: relative;
+}
+
+.list > li + li::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto var(--space-4);
+  height: 1px;
+  background: var(--rule);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: calc(var(--target) + var(--space-2));
+  padding: var(--space-3) var(--space-4);
+  text-decoration: none;
+  color: var(--ink);
+  transition: background-color var(--dur) var(--ease-out);
+}
+
+.row:active {
+  background: var(--surface-pressed);
+}
+
+@media (hover: hover) {
+  .row:hover {
+    background: var(--surface-pressed);
+  }
+}
+
+.row__body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.125rem;
+}
+
+.row__title {
+  font-size: var(--text-base);
+  font-weight: 500;
+}
+
+.row__sub {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.row__meta {
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chevron {
+  flex: none;
+  width: 0.5rem;
+  height: 0.875rem;
+  color: var(--ink-3);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

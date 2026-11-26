@@ -1,0 +1,36 @@
+---
+interface Props { title: string; korean?: string | undefined; hangul?: string | undefined; }
+const { title, korean, hangul } = Astro.props;
+---
+<header class="title">
+  <h1>{title}</h1>
+  {(korean || hangul) && (
+    <p class="korean">
+      {korean && <span>{korean}</span>}
+      {hangul && <span lang="ko">{hangul}</span>}
+    </p>
+  )}
+  <slot />
+</header>
+
+<style>
+  .title {
+    display: grid;
+    gap: var(--space-1);
+    margin: var(--space-2) 0 var(--space-5);
+  }
+  h1 {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .korean {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+    margin: 0;
+    font-size: var(--text-md);
+    color: var(--ink-2);
+  }
+</style>

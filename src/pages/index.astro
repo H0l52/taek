@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import InstallHint from '../components/InstallHint.astro';
+import Chevron from '../components/Chevron.astro';
+import PoomsaeLine from '../components/PoomsaeLine.astro';
+import { getAllTutorials, gradeLabel } from '../lib/content';
+import { url } from '../lib/paths';
+
+const all = await getAllTutorials();
+const patterns = all.find((s) => s.section.slug === 'patterns')?.tutorials ?? [];
+const danPoomsae = patterns.filter((p) => p.data.grade?.kind === 'dan');
+---
+<Base title="Taek">
+  <header class="home-title">
+    <h1>Taek</h1>
+    <p>Kukkiwon taekwondo</p>
+  </header>
+
+  <InstallHint />
+
+  {danPoomsae.length > 0 && (
+    <section aria-labelledby="dan-heading">
+      <h2 id="dan-heading" class="list-heading">Black belt poomsae</h2>
+      <ul class="list">
+        {danPoomsae.map((p) => (
+          <li>
+            <a class="row" href={url(`patterns/${p.id}/`)}>
+              <span class="glyph"><PoomsaeLine line={p.data.line} /></span>
+              <span class="row__body">
+                <span class="row__title">{p.data.title}</span>
+                <span class="row__sub">
+                  {p.data.grade && gradeLabel(p.data.grade)} · {p.data.moves} moves
+                </span>
+              </span>
+              {p.data.hangul && <span class="row__meta" lang="ko">{p.data.hangul}</span>}
+              <Chevron />
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section aria-labelledby="sections-heading">
+    <h2 id="sections-heading" class="list-heading">Sections</h2>
+    <ul class="list">
+      {all.map(({ section, tutorials }) => (
+        <li>
+          <a class="row" href={url(`${section.slug}/`)}>
+            <span class="row__body">
+              <span class="row__title">{section.title}</span>
+              <span class="row__sub">
+                {section.korean} <span lang="ko">{section.hangul}</span>
+              </span>
+            </span>
+            <span class="row__meta">{tutorials.length}</span>
+            <Chevron />
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .home-title {
+    margin: var(--space-5) 0 var(--space-2);
+  }
+  h1 {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .home-title p {
+    margin: var(--space-1) 0 0;
+    color: var(--ink-2);
+    font-size: var(--text-md);
+  }
+  .glyph {
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    min-height: 1.75rem;
+  }
+</style>

@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+import TabBar from '../components/TabBar.astro';
+import { url } from '../lib/paths';
+
+interface Props {
+  title: string;
+  description?: string;
+  section?: string | undefined;
+  /** True on a section's own index page (the tab root). */
+  sectionRoot?: boolean;
+}
+const { title, description = 'Kukkiwon taekwondo technique and poomsae, in your pocket.', section, sectionRoot = false } = Astro.props;
+const fullTitle = title === 'Taek' ? 'Taek' : `${title} · Taek`;
+const swEnabled = import.meta.env.PUBLIC_ENABLE_SW === 'true';
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f5f2ec" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0e0f" media="(prefers-color-scheme: dark)" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Taek" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+    <link rel="manifest" href={url('manifest.webmanifest')} />
+    <link rel="icon" href={url('icons/icon.svg')} type="image/svg+xml" />
+    <link rel="icon" href={url('icons/icon-192.png')} sizes="192x192" type="image/png" />
+    <link rel="apple-touch-icon" href={url('icons/apple-touch-icon.png')} />
+  </head>
+  <body>
+    <main class="page" id="main">
+      <slot />
+    </main>
+    <TabBar current={section} exact={sectionRoot} />
+    {swEnabled && (
+      <script is:inline define:vars={{ base }}>
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', async () => {
+            try {
+              const reg = await navigator.serviceWorker.register(base + 'sw.js', { scope: base });
+              const worker = reg.active || reg.waiting || reg.installing;
+              const urls = [location.href].concat(
+                performance
+                  .getEntriesByType('resource')
+                  .map((e) => e.name)
+                  .filter((u) => u.startsWith(location.origin) && !/\.(mp4|m4v|webm|mov)(\?|$)/.test(u)),
+              );
+              const send = (w) => w && w.postMessage({ type: 'cache-urls', urls });
+              if (worker && worker.state === 'activated') send(worker);
+              else navigator.serviceWorker.ready.then((r) => send(r.active));
+            } catch (e) {
+              console.warn('Service worker registration failed', e);
+            }
+          });
+        }
+      </script>
+    )}
+  </body>
+</html>
