@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.astro/
+.env
+.env.*
+.DS_Store
+test-results/
+playwright-report/
+blob-report/
+
+# Impeccable engine binary + caches
+.claude/skills/impeccable/scripts/bin/
+**/.impeccable/
+.impeccable/live/
